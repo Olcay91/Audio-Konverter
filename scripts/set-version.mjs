@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Setzt die App-Version an allen Stellen, die zusammenpassen müssen:
 //   node scripts/set-version.mjs 0.2.0
-// Danach committen und den passenden Tag setzen (v0.2.0), siehe README → Releases.
+// Danach committen und den passenden Tag setzen (v0.2.0), siehe docs/ENTWICKLUNG.md → Releases.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

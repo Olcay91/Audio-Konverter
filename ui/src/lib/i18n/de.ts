@@ -327,10 +327,16 @@ export const de = {
     autoCheckHint: 'Höchstens einmal am Tag beim Start der App.',
     checkNow: 'Nach Updates suchen',
     checking: 'Suche …',
-    notAvailableYet: 'Noch nicht verfügbar',
     upToDate: 'Du verwendest die neueste Version.',
     updateAvailable: (v: string) => `Version ${v} ist verfügbar.`,
     download: 'Zur Download-Seite',
+    updateNow: 'Jetzt aktualisieren',
+    downloadingUpdate: (v: string, percent: string | null) =>
+      percent ? `Version ${v} wird heruntergeladen … ${percent}` : `Version ${v} wird heruntergeladen …`,
+    installingUpdate: (v: string) => `Version ${v} wird installiert. Die App startet gleich neu.`,
+    waitForConversions: 'Erst möglich, wenn die laufenden Konvertierungen fertig sind.',
+    manualUpdate:
+      'Diese Version (portabel oder als Paket installiert) aktualisiert sich nicht selbst. Lade die neue Version von der Download-Seite.',
     updateError: (error: string) => `Update-Prüfung fehlgeschlagen: ${error}`,
     ffmpegNote: 'Verwendet FFmpeg, lizenziert unter der LGPL.',
     parallel: (n: number) => `Bis zu ${n} Dateien gleichzeitig`,

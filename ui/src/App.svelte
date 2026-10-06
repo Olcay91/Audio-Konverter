@@ -149,10 +149,10 @@
         }),
       );
 
-      // Automatische Update-Prüfung (nur aktiv, wenn eine Update-Quelle eingetragen ist)
+      // Automatische Update-Prüfung, höchstens einmal am Tag
       if (settings.autoUpdateCheck && dueForAutoCheck()) {
-        const status = await checkForUpdate(environment.appVersion);
-        if (status.state === 'available') showToast(t().toast.updateAvailable(status.info.version));
+        const status = await checkForUpdate();
+        if (status.state === 'available') showToast(t().toast.updateAvailable(status.version));
       }
     })();
 

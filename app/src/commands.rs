@@ -694,3 +694,34 @@ pub fn cancel_all(state: State<'_, AppState>) {
         token.cancel();
     }
 }
+
+// ---------- Installation ----------
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstallInfo {
+    /// Kann der eingebaute Updater diese Installation ersetzen?
+    can_self_update: bool,
+}
+
+/// Erkennt, ob ein Update direkt aus der App installiert werden kann:
+/// - Windows: nur mit Installer (dann liegt `uninstall.exe` neben der App), nicht portabel
+/// - macOS: ja (die .app wird ersetzt)
+/// - Linux: nur als AppImage (`APPIMAGE` ist gesetzt), nicht als .deb
+/// - Entwicklungsbuild: nie
+#[tauri::command]
+pub fn install_info() -> InstallInfo {
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(Path::to_path_buf));
+    let can_self_update = if cfg!(debug_assertions) {
+        false
+    } else if cfg!(target_os = "windows") {
+        exe_dir.is_some_and(|dir| dir.join("uninstall.exe").is_file())
+    } else if cfg!(target_os = "macos") {
+        true
+    } else {
+        std::env::var_os("APPIMAGE").is_some()
+    };
+    InstallInfo { can_self_update }
+}

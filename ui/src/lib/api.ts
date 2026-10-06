@@ -189,6 +189,8 @@ export const api = {
   importPresets: (presets: Preset[], replace: boolean) => invoke<ImportResult>('import_presets', { presets, replace }),
   readTextFile: (path: string) => invoke<string>('read_text_file', { path }),
   writeTextFile: (path: string, contents: string) => invoke<void>('write_text_file', { path, contents }),
+  /** Kann sich diese Installation selbst aktualisieren? (Nein: portabel, .deb, Entwicklung) */
+  installInfo: () => invoke<{ canSelfUpdate: boolean }>('install_info'),
   /** Tray-Symbol ein-/ausschalten; die Menütexte kommen aus der Sprachdatei. */
   setMinimizeToTray: (enabled: boolean, labels: { show: string; quit: string; tooltip: string }) =>
     invoke<void>('set_minimize_to_tray', { enabled, labels }),

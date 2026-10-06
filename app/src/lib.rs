@@ -10,6 +10,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .on_window_event(tray::on_window_event)
         .setup(|app| {
             // Mitgelieferte ffmpeg-Sidecars liegen neben der ausführbaren Datei.
@@ -37,6 +39,7 @@ pub fn run() {
             commands::cancel,
             commands::cancel_all,
             tray::set_minimize_to_tray,
+            commands::install_info,
         ])
         .build(tauri::generate_context!())
         .expect("Anwendung konnte nicht gestartet werden")

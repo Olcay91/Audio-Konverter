@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { open, save } from '@tauri-apps/plugin-dialog';
   import { openUrl } from '@tauri-apps/plugin-opener';
   import { api, FORMATS, type Environment, type Preset } from '../api';
@@ -14,7 +15,8 @@
     type Mode,
     type Theme,
   } from '../settings.svelte';
-  import { checkForUpdate, update, updatesEnabled } from '../updates.svelte';
+  import { queue } from '../queue.svelte';
+  import { checkForUpdate, installUpdate, RELEASES_URL, update } from '../updates.svelte';
   import Dropdown from './Dropdown.svelte';
   import Icon from './Icon.svelte';
   import ImportDialog from './ImportDialog.svelte';
@@ -116,13 +118,34 @@
 
   // ---------- Updates ----------
 
+  /** Kann sich diese Installation selbst ersetzen? Sonst Link zur Download-Seite. */
+  let canSelfUpdate = $state(false);
+  onMount(async () => {
+    try {
+      canSelfUpdate = (await api.installInfo()).canSelfUpdate;
+    } catch {
+      canSelfUpdate = false;
+    }
+  });
+
+  /** Während Konvertierungen laufen, nicht installieren: Die App startet dabei neu. */
+  const conversionsRunning = $derived(queue.counts.active > 0);
+
   const updateText = $derived.by(() => {
     const s = update.status;
-    if (s.state === 'current') return t().settings.upToDate;
-    if (s.state === 'available') return t().settings.updateAvailable(s.info.version);
-    if (s.state === 'error') return t().settings.updateError(s.message);
+    const m = t().settings;
+    if (s.state === 'current') return m.upToDate;
+    if (s.state === 'available') return m.updateAvailable(s.version);
+    if (s.state === 'downloading') {
+      const percent = s.progress === null ? null : `${Math.round(s.progress * 100)} %`;
+      return m.downloadingUpdate(s.version, percent);
+    }
+    if (s.state === 'installing') return m.installingUpdate(s.version);
+    if (s.state === 'error') return m.updateError(s.message);
     return '';
   });
+
+  const updateBusy = $derived(['checking', 'downloading', 'installing'].includes(update.status.state));
 </script>
 
 <aside class="panel" aria-label={t().settings.title}>
@@ -138,32 +161,50 @@
       {#if env}<span class="muted">{t().settings.version(env.appVersion)}</span>{/if}
     </p>
 
-    <label class="toggle" class:disabled={!updatesEnabled} title={updatesEnabled ? '' : t().settings.notAvailableYet}>
+    <label class="toggle">
       <span class="text">
         <span>{t().settings.autoCheck}</span>
         <small>{t().settings.autoCheckHint}</small>
       </span>
-      <input type="checkbox" role="switch" bind:checked={settings.autoUpdateCheck} disabled={!updatesEnabled} />
+      <input type="checkbox" role="switch" bind:checked={settings.autoUpdateCheck} />
     </label>
 
     <div class="buttons">
-      <!-- Gesperrte Buttons zeigen nicht überall einen Tooltip, daher am Wrapper -->
-      <span class="btn-wrap" title={updatesEnabled ? '' : t().settings.notAvailableYet}>
-        <button
-          class="btn"
-          disabled={!updatesEnabled || !env || update.status.state === 'checking'}
-          onclick={() => env && checkForUpdate(env.appVersion)}
-        >
+      {#if update.status.state === 'available' && canSelfUpdate}
+        <!-- Gesperrte Buttons zeigen nicht überall einen Tooltip, daher am Wrapper -->
+        <span class="btn-wrap" title={conversionsRunning ? t().settings.waitForConversions : ''}>
+          <button class="btn primary" disabled={conversionsRunning} onclick={installUpdate}>
+            {t().settings.updateNow}
+          </button>
+        </span>
+      {:else if update.status.state === 'available'}
+        <button class="btn primary" onclick={() => openUrl(RELEASES_URL)}>{t().settings.download}</button>
+      {:else}
+        <button class="btn" disabled={updateBusy} onclick={checkForUpdate}>
           {update.status.state === 'checking' ? t().settings.checking : t().settings.checkNow}
         </button>
-      </span>
-      {#if update.status.state === 'available'}
-        {@const url = update.status.info.url}
-        <button class="btn primary" onclick={() => openUrl(url)}>{t().settings.download}</button>
       {/if}
     </div>
+
+    {#if update.status.state === 'downloading'}
+      <div
+        class="update-progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={update.status.progress === null ? undefined : Math.round(update.status.progress * 100)}
+      >
+        <span
+          class:indeterminate={update.status.progress === null}
+          style:width={update.status.progress === null ? '30%' : `${update.status.progress * 100}%`}
+        ></span>
+      </div>
+    {/if}
     {#if updateText}
-      <p class="hint" class:error={update.status.state === 'error'}>{updateText}</p>
+      <p class="hint" class:error={update.status.state === 'error'} aria-live="polite">{updateText}</p>
+    {/if}
+    {#if update.status.state === 'available' && !canSelfUpdate}
+      <p class="hint">{t().settings.manualUpdate}</p>
     {/if}
   </section>
 
@@ -597,6 +638,31 @@
   /* Mausereignisse gehen an den Wrapper, damit dessen Tooltip erscheint */
   .btn-wrap .btn:disabled {
     pointer-events: none;
+  }
+  .update-progress {
+    height: 6px;
+    margin-top: 12px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--surface-sunk);
+  }
+  .update-progress span {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.2s ease-out;
+  }
+  .update-progress .indeterminate {
+    animation: slide 1.2s ease-in-out infinite;
+  }
+  @keyframes slide {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(340%);
+    }
   }
   .about-line {
     display: flex;

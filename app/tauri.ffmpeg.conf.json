@@ -1,11 +1,15 @@
 {
   "bundle": {
-    "externalBin": ["binaries/audiokonverter-ffmpeg", "binaries/audiokonverter-ffprobe"],
+    "externalBin": [
+      "binaries/audiokonverter-ffmpeg",
+      "binaries/audiokonverter-ffprobe"
+    ],
     "resources": {
       "../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md"
     },
     "macOS": {
       "signingIdentity": "-"
-    }
+    },
+    "createUpdaterArtifacts": true
   }
 }
