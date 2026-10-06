@@ -30,7 +30,7 @@ jobs:
     outputs:
       release_id: ${{ steps.release.outputs.id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Version prüfen
         run: |
@@ -82,7 +82,7 @@ jobs:
             bundles: appimage,deb
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # ---------- Werkzeuge ----------
 
@@ -118,7 +118,7 @@ jobs:
 
       - name: ffmpeg aus dem Cache
         id: ffmpeg-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: build/ffmpeg/out
           key: ffmpeg-${{ matrix.triple }}-${{ hashFiles('scripts/ffmpeg/build.sh') }}
@@ -144,7 +144,7 @@ jobs:
 
       # ---------- App ----------
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -190,7 +190,7 @@ jobs:
       # Bei manuellen Läufen: Ergebnisse als Artifact zum Herunterladen
       - name: Ergebnisse ablegen (ohne Release)
         if: needs.create-release.result == 'skipped'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: audio-konverter-${{ matrix.name }}
           path: |
