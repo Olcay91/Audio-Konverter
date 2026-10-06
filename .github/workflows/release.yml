@@ -53,10 +53,18 @@ jobs:
             echo "Entferne alten Entwurf $OLD"
             gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$OLD"
           done
-          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
-            --title "Audio Konverter $GITHUB_REF_NAME" \
-            --notes-file .github/release-notes.md
-          ID=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$GITHUB_REF_NAME\") | .id" | head -n1)
+          # Direkt über die API anlegen: Die Antwort enthält die ID, die die Builds zum Hochladen brauchen.
+          ID=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$GITHUB_REF_NAME" \
+            -f name="Audio Konverter $GITHUB_REF_NAME" \
+            -f body="$(cat .github/release-notes.md)" \
+            -F draft=true \
+            --jq '.id')
+          if [ -z "$ID" ]; then
+            echo "::error::Release-Entwurf wurde angelegt, aber ohne ID zurückgegeben."
+            exit 1
+          fi
+          echo "Release-Entwurf $ID angelegt"
           echo "id=$ID" >> "$GITHUB_OUTPUT"
 
   build:
