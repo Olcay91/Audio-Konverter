@@ -1,0 +1,170 @@
+# Standard-Presets, gruppiert nach Format. Werden in die App eingebettet.
+# Eigene Presets speichert die App separat (presets.json im Konfigurationsordner).
+#
+# codec:  mp3 | aac | opus | vorbis | flac | alac | wav | aiff
+# rate:   { mode = "quality", value = N }   Qualitätsstufe (MP3: 0–9, Vorbis: -1–10)
+#         { mode = "bitrate", kbps = N }    Zielbitrate
+#         { mode = "lossless" }             optional: compression = 0–12 (nur FLAC)
+# optional: sample_rate, bit_depth, channels – jeweils Obergrenzen, es wird nie
+# hochgerechnet. Ohne Angabe gilt der Wert der Quelle.
+
+# ---------- MP3 ----------
+[[preset]]
+id = "mp3-v0"
+name = "V0 (VBR, ca. 245 kbit/s)"
+description = "Beste MP3-Qualität bei variabler Bitrate"
+codec = "mp3"
+rate = { mode = "quality", value = 0 }
+
+[[preset]]
+id = "mp3-v2"
+name = "V2 (VBR, ca. 190 kbit/s)"
+description = "Sehr gute Qualität, kleinere Dateien"
+codec = "mp3"
+rate = { mode = "quality", value = 2 }
+
+[[preset]]
+id = "mp3-320"
+name = "320 kbit/s (CBR)"
+description = "Konstante Bitrate, maximale Kompatibilität"
+codec = "mp3"
+rate = { mode = "bitrate", kbps = 320 }
+
+[[preset]]
+id = "mp3-192"
+name = "192 kbit/s (CBR)"
+description = "Guter Kompromiss für Autoradio und Handy"
+codec = "mp3"
+rate = { mode = "bitrate", kbps = 192 }
+
+[[preset]]
+id = "mp3-128"
+name = "128 kbit/s (CBR)"
+description = "Kleine Dateien, z. B. für Hörbücher"
+codec = "mp3"
+rate = { mode = "bitrate", kbps = 128 }
+
+# ---------- AAC ----------
+[[preset]]
+id = "aac-256"
+name = "256 kbit/s"
+description = "Sehr hohe Qualität, wie im iTunes Store"
+codec = "aac"
+rate = { mode = "bitrate", kbps = 256 }
+
+[[preset]]
+id = "aac-192"
+name = "192 kbit/s"
+codec = "aac"
+rate = { mode = "bitrate", kbps = 192 }
+
+[[preset]]
+id = "aac-128"
+name = "128 kbit/s"
+codec = "aac"
+rate = { mode = "bitrate", kbps = 128 }
+
+# ---------- Opus ----------
+[[preset]]
+id = "opus-160"
+name = "160 kbit/s"
+description = "Für Musik praktisch nicht vom Original zu unterscheiden"
+codec = "opus"
+rate = { mode = "bitrate", kbps = 160 }
+
+[[preset]]
+id = "opus-128"
+name = "128 kbit/s"
+codec = "opus"
+rate = { mode = "bitrate", kbps = 128 }
+
+[[preset]]
+id = "opus-96"
+name = "96 kbit/s"
+description = "Klein und trotzdem gut, ideal fürs Streaming unterwegs"
+codec = "opus"
+rate = { mode = "bitrate", kbps = 96 }
+
+# ---------- Ogg Vorbis ----------
+[[preset]]
+id = "vorbis-q8"
+name = "q8 (ca. 256 kbit/s)"
+codec = "vorbis"
+rate = { mode = "quality", value = 8 }
+
+[[preset]]
+id = "vorbis-q6"
+name = "q6 (ca. 192 kbit/s)"
+codec = "vorbis"
+rate = { mode = "quality", value = 6 }
+
+[[preset]]
+id = "vorbis-q4"
+name = "q4 (ca. 128 kbit/s)"
+codec = "vorbis"
+rate = { mode = "quality", value = 4 }
+
+# ---------- FLAC ----------
+[[preset]]
+id = "flac"
+name = "Wie Quelle"
+description = "Abtastrate und Bit-Tiefe bleiben unverändert"
+codec = "flac"
+rate = { mode = "lossless", compression = 5 }
+
+[[preset]]
+id = "flac-16-44"
+name = "CD-Qualität (16 Bit / 44,1 kHz)"
+description = "Hi-Res-Dateien werden auf CD-Qualität reduziert"
+codec = "flac"
+rate = { mode = "lossless", compression = 5 }
+sample_rate = 44100
+bit_depth = 16
+
+# ---------- ALAC ----------
+[[preset]]
+id = "alac"
+name = "Wie Quelle"
+description = "Abtastrate und Bit-Tiefe bleiben unverändert"
+codec = "alac"
+rate = { mode = "lossless" }
+
+[[preset]]
+id = "alac-16-44"
+name = "CD-Qualität (16 Bit / 44,1 kHz)"
+codec = "alac"
+rate = { mode = "lossless" }
+sample_rate = 44100
+bit_depth = 16
+
+# ---------- WAV ----------
+[[preset]]
+id = "wav"
+name = "Wie Quelle"
+description = "Abtastrate und Bit-Tiefe bleiben unverändert"
+codec = "wav"
+rate = { mode = "lossless" }
+
+[[preset]]
+id = "wav-16-44"
+name = "CD-Qualität (16 Bit / 44,1 kHz)"
+codec = "wav"
+rate = { mode = "lossless" }
+sample_rate = 44100
+bit_depth = 16
+
+# ---------- AIFF ----------
+[[preset]]
+id = "aiff"
+name = "Wie Quelle"
+description = "Abtastrate und Bit-Tiefe bleiben unverändert"
+codec = "aiff"
+rate = { mode = "lossless" }
+
+[[preset]]
+id = "aiff-16-44"
+name = "CD-Qualität (16 Bit / 44,1 kHz)"
+codec = "aiff"
+rate = { mode = "lossless" }
+sample_rate = 44100
+bit_depth = 16

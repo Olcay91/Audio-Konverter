@@ -1,0 +1,15 @@
+{
+  "name": "audio-konverter",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["ui"],
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "check": "npm run check --workspace ui"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
