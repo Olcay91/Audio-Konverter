@@ -40,7 +40,7 @@ for (const [name, src] of [['ffmpeg', ffmpeg], ['ffprobe', ffprobe]]) {
     console.error(`Nicht gefunden: ${src}`);
     process.exit(1);
   }
-  const dest = join(outDir, `${name}-${triple}${ext}`);
+  const dest = join(outDir, `audiokonverter-${name}-${triple}${ext}`);
   copyFileSync(src, dest);
   if (!ext) chmodSync(dest, 0o755);
   console.log(`${src} -> ${dest}`);

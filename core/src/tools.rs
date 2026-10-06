@@ -5,6 +5,10 @@ use tokio::process::Command;
 
 use crate::{Error, Result};
 
+/// Namenspräfix der mitgelieferten Programme. Eigene Namen verhindern, dass z. B. das
+/// .deb-Paket unter Linux mit dem ffmpeg der Distribution in /usr/bin kollidiert.
+pub const SIDECAR_PREFIX: &str = "audiokonverter-";
+
 /// Pfade zu ffmpeg und ffprobe.
 #[derive(Debug, Clone)]
 pub struct Tools {
@@ -14,8 +18,8 @@ pub struct Tools {
 
 impl Tools {
     /// Sucht die Programme in dieser Reihenfolge: in `search_dirs` (z. B. neben der
-    /// App, wohin Tauri mitgelieferte Sidecars legt), im `PATH`, in üblichen
-    /// Installationsordnern. Wird nichts gefunden, bleibt der nackte Programmname,
+    /// App, wohin Tauri mitgelieferte Sidecars legt; erst `audiokonverter-ffmpeg`,
+    /// dann `ffmpeg`), im `PATH`, in üblichen Installationsordnern. Wird nichts gefunden, bleibt der nackte Programmname,
     /// damit der Fehler erst beim Aufruf mit klarer Meldung auftritt.
     pub fn locate(search_dirs: &[PathBuf]) -> Self {
         Self {
@@ -38,6 +42,7 @@ impl Tools {
 
 fn find(name: &str, search_dirs: &[PathBuf]) -> PathBuf {
     let file = format!("{name}{}", std::env::consts::EXE_SUFFIX);
+    let sidecar = format!("{SIDECAR_PREFIX}{file}");
 
     let from_path = std::env::var_os("PATH")
         .map(|p| std::env::split_paths(&p).collect::<Vec<_>>())
@@ -52,11 +57,12 @@ fn find(name: &str, search_dirs: &[PathBuf]) -> PathBuf {
         Vec::new()
     };
 
-    search_dirs
-        .iter()
-        .chain(from_path.iter())
-        .chain(fallback.iter())
-        .map(|dir| dir.join(&file))
+    // Neben der App zuerst der mitgelieferte Name, dann der übliche (z. B. von Hand hingelegt).
+    let next_to_app = search_dirs.iter().flat_map(|dir| [dir.join(&sidecar), dir.join(&file)]);
+    let elsewhere = from_path.iter().chain(fallback.iter()).map(|dir| dir.join(&file));
+
+    next_to_app
+        .chain(elsewhere)
         .find(|candidate| candidate.is_file())
         .unwrap_or_else(|| PathBuf::from(file))
 }

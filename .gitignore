@@ -6,6 +6,10 @@ app/binaries/
 *.log
 .DS_Store
 
-# Lokale ffmpeg-Programme (zu groß für GitHub)
+# Lokale ffmpeg-Programme: zu groß für GitHub (> 100 MB). Für Releases kommt
+# ein LGPL-Build per scripts/prepare-ffmpeg.mjs nach app/binaries/.
 ffmpeg.exe
 ffprobe.exe
+
+# Zwischenstände des ffmpeg-Builds (scripts/ffmpeg/build.sh)
+build/

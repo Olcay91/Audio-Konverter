@@ -102,29 +102,59 @@ Die Update-Prüfung ist vorbereitet, aber noch aus (`ui/src/lib/updates.svelte.t
    (`npm run tauri signer generate`), signierte Builds samt `latest.json` veröffentlichen und
    `fetchLatest` durch `check()` aus `@tauri-apps/plugin-updater` ersetzen.
 
+## Releases
+
+Fertige Pakete baut GitHub Actions (`.github/workflows/release.yml`):
+
+| Plattform | Pakete |
+|---|---|
+| Windows | NSIS-Installer (.exe), portable ZIP |
+| macOS | .dmg für Apple Silicon und Intel |
+| Linux | .AppImage, .deb |
+
+Neue Version veröffentlichen:
+
+```bash
+node scripts/set-version.mjs 0.2.0      # Version in package.json, tauri.conf.json, Cargo.toml
+git commit -am "Version 0.2.0"
+git tag v0.2.0
+git push && git push origin v0.2.0
+```
+
+Der Workflow legt einen Release-Entwurf an; nach Prüfung auf GitHub veröffentlichen.
+Zum Ausprobieren ohne Release: *Actions → Release → Run workflow*, die Pakete hängen dann
+als „Artifacts“ am Lauf.
+
+Die Pakete sind nicht kostenpflichtig signiert (macOS nur ad hoc). Windows SmartScreen und
+macOS Gatekeeper warnen deshalb beim ersten Start; der Release-Text erklärt, was zu tun ist.
+
 ## ffmpeg mitliefern
 
-Für die Entwicklung reicht ffmpeg im `PATH`. Für Release-Builds wird es als Sidecar
-neben die App gelegt; die App sucht dort zuerst.
+Für die Entwicklung reicht ffmpeg im `PATH`. In Releases liegt ein **schlanker
+Audio-Build** (LGPL, nur benötigte Encoder/Muxer, alle Audio-Decoder) als Sidecar neben
+der App. Gebaut wird er mit `scripts/ffmpeg/build.sh` (Linux, macOS, Windows/MSYS2), im
+CI zwischengespeichert, bis sich das Skript ändert.
 
-1. LGPL-Builds von ffmpeg und ffprobe für die Zielplattform besorgen
-   (z. B. BtbN-Builds für Windows/Linux, eigene Builds für macOS).
-2. In den Bundle-Ordner kopieren:
-   ```bash
-   node scripts/prepare-ffmpeg.mjs /pfad/zu/ffmpeg /pfad/zu/ffprobe
-   ```
-3. Mit Sidecar-Konfiguration bauen:
-   ```bash
-   npm run tauri build -- --config app/tauri.ffmpeg.conf.json
-   ```
+Die mitgelieferten Programme heißen `audiokonverter-ffmpeg` und `audiokonverter-ffprobe`,
+damit z. B. das .deb-Paket nicht mit dem ffmpeg der Distribution in `/usr/bin` kollidiert.
+Neben der App sucht `core/src/tools.rs` zuerst diese Namen, dann `ffmpeg`/`ffprobe`.
+
+Lokal mit Sidecar bauen:
+
+```bash
+bash scripts/ffmpeg/build.sh                       # Ergebnis in build/ffmpeg/out/
+node scripts/prepare-ffmpeg.mjs build/ffmpeg/out/ffmpeg build/ffmpeg/out/ffprobe
+npm run tauri build -- --config app/tauri.ffmpeg.conf.json
+```
 
 Ohne diese Konfiguration baut `npm run build` die App ohne ffmpeg; sie nutzt dann das
 installierte ffmpeg des Systems.
 
 ### Lizenzhinweise
 
-- ffmpeg als **LGPL-Build** und als separates Programm mitliefern; in der App bzw. im
-  About-Dialog auf ffmpeg und den Quellcode verweisen.
+- ffmpeg als **LGPL-Build** und als separates Programm mitliefern; Hinweise und
+  Quellverweise stehen in `THIRD_PARTY_NOTICES.md` (wird in die Pakete übernommen) und
+  in `FFMPEG-BUILD.txt` (portable ZIP).
 - `libfdk_aac` ist nicht frei weiterverteilbar und wird nicht verwendet; AAC nutzt den
   eingebauten ffmpeg-Encoder.
 - Die eigene Lizenz des Projekts (z. B. MIT oder GPL-3.0) ist noch festzulegen.
