@@ -67,13 +67,15 @@ jobs:
           - name: macos-arm64
             os: macos-14
             triple: aarch64-apple-darwin
-            bundles: dmg
+            # app: Archiv für den Updater in der App, dmg: für neue Installationen
+            bundles: app,dmg
             macos_target: '11.0'
           - name: macos-x64
             # Intel-Runner; falls GitHub ihn einstellt: auf macos-14 mit Cross-Build umstellen
             os: macos-15-intel
             triple: x86_64-apple-darwin
-            bundles: dmg
+            # app: Archiv für den Updater in der App, dmg: für neue Installationen
+            bundles: app,dmg
             macos_target: '10.15'
           - name: linux-x64
             # Älteres Ubuntu = ältere glibc = AppImage läuft auf mehr Distributionen
@@ -157,11 +159,17 @@ jobs:
 
       - run: npm ci
 
+      # Signiert die Update-Pakete. Die Schlüssel liegen als Repository-Secrets vor
+      # (Settings → Secrets and variables → Actions), siehe docs/ENTWICKLUNG.md → Updates.
       - name: App bauen
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          # latest.json für den Updater in der App (wird über alle Plattformen zusammengeführt)
+          includeUpdaterJson: true
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: --config app/tauri.ffmpeg.conf.json --bundles ${{ matrix.bundles }}
 
