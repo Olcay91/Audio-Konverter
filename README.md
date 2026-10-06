@@ -3,7 +3,10 @@
 A simple, modern audio converter for Windows, macOS and Linux, powered by ffmpeg.
 Drop in files or whole folders, pick a format and a preset, done.
 
-![Audio Konverter screenshot](docs/screenshot.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img alt="Audio Konverter screenshot" src="docs/screenshot-light.png">
+</picture>
 
 **[Download the latest version](https://github.com/Olcay91/Audio-Konverter/releases/latest)**
 
