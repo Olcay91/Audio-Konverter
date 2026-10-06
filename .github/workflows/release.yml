@@ -46,6 +46,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Alte Entwürfe zum selben Tag entfernen (z. B. von abgebrochenen Läufen).
+          # Entwürfe binden den Tag nicht, deshalb kann es sonst mehrere geben.
+          for OLD in $(gh api "repos/$GITHUB_REPOSITORY/releases" \
+              --jq ".[] | select(.draft and .tag_name == \"$GITHUB_REF_NAME\") | .id"); do
+            echo "Entferne alten Entwurf $OLD"
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$OLD"
+          done
           gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
             --title "Audio Konverter $GITHUB_REF_NAME" \
             --notes-file .github/release-notes.md
@@ -188,12 +195,22 @@ jobs:
           Compress-Archive -Path $name -DestinationPath "$name.zip"
           "PORTABLE_ZIP=$name.zip" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      # Über die Release-ID statt den Tag-Namen, damit die Datei sicher im richtigen Entwurf landet
       - name: Portable ZIP zum Release hinzufügen
         if: runner.os == 'Windows' && needs.create-release.result == 'success'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" "$PORTABLE_ZIP" --clobber
+          RELEASE_ID: ${{ needs.create-release.outputs.release_id }}
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/zip" \
+            --data-binary @"$PORTABLE_ZIP" \
+            "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$PORTABLE_ZIP" \
+            -o /dev/null
+          echo "$PORTABLE_ZIP hochgeladen"
 
       # Bei manuellen Läufen: Ergebnisse als Artifact zum Herunterladen
       - name: Ergebnisse ablegen (ohne Release)
