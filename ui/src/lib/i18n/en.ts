@@ -340,6 +340,7 @@ export const en: Messages = {
     manualUpdate:
       'This version (portable or installed as a package) does not update itself. Download the new version from the download page.',
     updateError: (error) => `Update check failed: ${error}`,
+    updateOffline: 'Could not reach the update server. Please try again later.',
     ffmpegNote: 'Uses FFmpeg, licensed under the LGPL.',
     parallel: (n) => `Up to ${n} files at a time`,
   },

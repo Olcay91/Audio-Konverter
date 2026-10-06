@@ -338,6 +338,7 @@ export const de = {
     manualUpdate:
       'Diese Version (portabel oder als Paket installiert) aktualisiert sich nicht selbst. Lade die neue Version von der Download-Seite.',
     updateError: (error: string) => `Update-Prüfung fehlgeschlagen: ${error}`,
+    updateOffline: 'Keine Verbindung zum Update-Server. Bitte später erneut versuchen.',
     ffmpegNote: 'Verwendet FFmpeg, lizenziert unter der LGPL.',
     parallel: (n: number) => `Bis zu ${n} Dateien gleichzeitig`,
   },

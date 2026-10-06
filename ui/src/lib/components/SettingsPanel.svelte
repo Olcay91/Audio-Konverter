@@ -141,7 +141,7 @@
       return m.downloadingUpdate(s.version, percent);
     }
     if (s.state === 'installing') return m.installingUpdate(s.version);
-    if (s.state === 'error') return m.updateError(s.message);
+    if (s.state === 'error') return s.kind === 'offline' ? m.updateOffline : m.updateError(s.message);
     return '';
   });
 
@@ -180,7 +180,7 @@
       {:else if update.status.state === 'available'}
         <button class="btn primary" onclick={() => openUrl(RELEASES_URL)}>{t().settings.download}</button>
       {:else}
-        <button class="btn" disabled={updateBusy} onclick={checkForUpdate}>
+        <button class="btn" disabled={updateBusy} onclick={() => checkForUpdate()}>
           {update.status.state === 'checking' ? t().settings.checking : t().settings.checkNow}
         </button>
       {/if}

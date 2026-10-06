@@ -2,7 +2,9 @@
   "name": "audio-konverter",
   "private": true,
   "version": "0.1.0",
-  "workspaces": ["ui"],
+  "workspaces": [
+    "ui"
+  ],
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",

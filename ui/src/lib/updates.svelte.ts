@@ -23,7 +23,8 @@ export type UpdateStatus =
   /** progress: 0–1, null solange die Größe unbekannt ist */
   | { state: 'downloading'; version: string; progress: number | null }
   | { state: 'installing'; version: string }
-  | { state: 'error'; message: string };
+  /** kind: offline = Server nicht erreichbar, sonst sonstiger Fehler mit Meldung */
+  | { state: 'error'; kind: 'offline' | 'other'; message: string };
 
 /** Zustand, geteilt zwischen Start-Prüfung und Einstellungen. */
 export const update = $state<{ status: UpdateStatus }>({ status: { state: 'idle' } });
@@ -36,8 +37,26 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** Prüft auf Updates und legt das Ergebnis in `update.status` ab. */
-export async function checkForUpdate(): Promise<UpdateStatus> {
+/**
+ * Ordnet Meldungen des Updaters ein:
+ * - „Could not fetch a valid release JSON“: Es gibt (noch) kein veröffentlichtes Release mit
+ *   latest.json. Für Nutzer heißt das schlicht: keine neuere Version.
+ * - Netzwerkfehler (reqwest): Server nicht erreichbar.
+ */
+function classify(e: unknown): UpdateStatus {
+  const text = message(e);
+  if (/valid release JSON/i.test(text)) return { state: 'current' };
+  if (/error sending request|dns|connect|timed? ?out|network|offline/i.test(text)) {
+    return { state: 'error', kind: 'offline', message: text };
+  }
+  return { state: 'error', kind: 'other', message: text };
+}
+
+/**
+ * Prüft auf Updates und legt das Ergebnis in `update.status` ab.
+ * `silent` (automatische Prüfung beim Start): Fehler werden nicht angezeigt.
+ */
+export async function checkForUpdate(options: { silent?: boolean } = {}): Promise<UpdateStatus> {
   update.status = { state: 'checking' };
   try {
     pending = await check();
@@ -47,7 +66,10 @@ export async function checkForUpdate(): Promise<UpdateStatus> {
     markChecked();
   } catch (e) {
     pending = null;
-    update.status = { state: 'error', message: message(e) };
+    const result = classify(e);
+    if (result.state === 'error') console.warn('Update-Prüfung:', result.message);
+    else markChecked();
+    update.status = result.state === 'error' && options.silent ? { state: 'idle' } : result;
   }
   return update.status;
 }
@@ -75,7 +97,8 @@ export async function installUpdate(): Promise<void> {
     });
     await relaunch();
   } catch (e) {
-    update.status = { state: 'error', message: message(e) };
+    const result = classify(e);
+    update.status = result.state === 'error' ? result : { state: 'error', kind: 'other', message: message(e) };
   }
 }
 

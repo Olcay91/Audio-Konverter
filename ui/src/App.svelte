@@ -151,7 +151,7 @@
 
       // Automatische Update-Prüfung, höchstens einmal am Tag
       if (settings.autoUpdateCheck && dueForAutoCheck()) {
-        const status = await checkForUpdate();
+        const status = await checkForUpdate({ silent: true });
         if (status.state === 'available') showToast(t().toast.updateAvailable(status.version));
       }
     })();
